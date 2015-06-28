@@ -3,7 +3,7 @@ Basic Traffic Controller
 
 This project demonstrates the basic Traffic Controller System. It has following Features:
 
-1) This System produce output for 'T'(3 road junction) OR '+'(4 road junction) Traffic Signal in 2 Phase transitions.
+1) This System produce output for 'T'(3 road junction) OR '+'(4 road junction) Shaped Traffic Signal in 2 Phase transitions.
    In this Road objects are of 'TwoPhasedRoad' type and Traffic signal is of 'TwoPhasedTrafficController' type.
    Same example is demonstrated in 'TrafficController.java' file.
    
