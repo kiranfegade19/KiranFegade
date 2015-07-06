@@ -96,7 +96,7 @@ public class TwoPhasedTrafficController extends AbstractTrafficSignal {
 				greenCounter++;
 			} else if(yelloCounter > 0) {
 				for(IRoadTwoPhaser road : roads) {
-						((AbstractRoad)road).incrementVehicleCount();
+						((AbstractRoad)road).updateSignalStatus(yellowSignal);
 				}
 			}
 			
