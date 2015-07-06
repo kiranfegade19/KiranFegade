@@ -1,6 +1,12 @@
-package com.sec.models;
+package com.sec.signalcontrollers;
 
 import java.util.List;
+
+import com.sec.roads.AbstractRoad;
+import com.sec.roads.IRoadTwoPhaser;
+import com.sec.signals.SignalGreenOperation;
+import com.sec.signals.SignalRedOperation;
+import com.sec.signals.SignalYellowOperation;
 
 /**
  * This class represents two phased traffic control system
@@ -13,8 +19,8 @@ public class TwoPhasedTrafficController extends AbstractTrafficSignal {
 	private int currentGreenPhase = IRoadTwoPhaser.PHASEA;
 	private int greenCounter;
 	private int yelloCounter;
-	private int ignitionCounter = this.vehicleIgnitionTime + 1;
 	private int stepCounter;
+	private StringBuilder strBuilder = new StringBuilder();
 	
 	/**
 	 * 
@@ -22,61 +28,69 @@ public class TwoPhasedTrafficController extends AbstractTrafficSignal {
 	 * @param phaseBRoads : roads that belongs to phase B. (roads for which green and red light will operate exactly same)
 	 * @param greenTime : time of green light for each road block
 	 * @param yellowTime : time between green to red light transition for each road block
-	 * @param vehicleIgnitionTime : time required for vehicle to move after red to green signal transition
 	 * @param numberOfCycles : number of cycles
 	 * @throws IllegalArgumentException : if number of roads are not 3 or 4 OR timings provided are not valid then IllegalArgumentException is thrown
 	 */
-	public TwoPhasedTrafficController(List<IRoadTwoPhaser> phaseARoads, List<IRoadTwoPhaser> phaseBRoads, int greenTime, int yellowTime, int vehicleIgnitionTime, int numberOfCycles) throws IllegalArgumentException {
-		super(greenTime, yellowTime, vehicleIgnitionTime, numberOfCycles);
-		
-		if( ((phaseARoads == null) || (phaseBRoads == null)) || ((phaseARoads.size() > 2) || (phaseBRoads.size() > 2)) || ((phaseARoads.size() == 0) || (phaseBRoads.size() == 0)) ) {
+	@Override
+	public void initSignal(List<IRoadTwoPhaser> roads, int greenTime, int yellowTime, int numberOfCycles) throws IllegalArgumentException {
+		this.greenTime = greenTime;
+		this.yellowTime = yellowTime;
+		this.numberOfCycles = numberOfCycles;
+		if( (roads == null) || (roads.size() > 4 || roads.size() < 3) ) {
 			throw new IllegalArgumentException("Two Phased Traffic Controller need 3 or 4 roads !");
 		}
 		
-		if(greenTime < 1 || yellowTime < 0 || vehicleIgnitionTime < 0 || numberOfCycles < 1) {
+		if(greenTime < 1 || yellowTime < 0 ||  numberOfCycles < 1) {
 			throw new IllegalArgumentException("Invalid timings entered !");
 		}
 		
-		this.roads = phaseARoads;
-		this.roads.addAll(phaseBRoads);
+		this.roads = roads;
 		this.numberOfRoads = this.roads.size();
+		
+		greenSignal = new SignalGreenOperation();
+		yellowSignal = new SignalYellowOperation();
+		redSignal = new SignalRedOperation();
 	}
-
+	
 	/**
 	 *  starts the transitions of signals and vehicle counting on the roads
 	 */
 	@Override
-	public void start() {
+	public void startTraffic() {
 		while(true) {
-			ignitionCounter++;
 			
+			strBuilder.setLength(0);
 			for(int i = 0; i < numberOfRoads; i++) {
 				if(i == 0)
-					System.out.print(String.format("#%02d", stepCounter) +" " + ((AbstractRoad)roads.get(i)).getRoadName() + " : " + String.format("%02d", ((AbstractRoad)roads.get(i)).getVehicleCount()));
+					strBuilder.append(stepCounter +": " + ((AbstractRoad)roads.get(i)).getRoadName() + " = " + ((AbstractRoad)roads.get(i)).getVehicleCount());
 				else if(i == 1)
-					System.out.print(String.format(", " + ((AbstractRoad)roads.get(i)).getRoadName() + " : " + String.format("%02d", ((AbstractRoad)roads.get(i)).getVehicleCount())));
+					strBuilder.append("; " + ((AbstractRoad)roads.get(i)).getRoadName() + " = " + ((AbstractRoad)roads.get(i)).getVehicleCount());
 				else if(i == 2)
-					System.out.print(String.format(", " + ((AbstractRoad)roads.get(i)).getRoadName() + " : " + String.format("%02d", ((AbstractRoad)roads.get(i)).getVehicleCount())));
+					strBuilder.append("; " + ((AbstractRoad)roads.get(i)).getRoadName() + " = " + ((AbstractRoad)roads.get(i)).getVehicleCount());
 				else if(i == 3)
-					System.out.print(String.format(", " + ((AbstractRoad)roads.get(i)).getRoadName() + " : " + String.format("%02d", ((AbstractRoad)roads.get(i)).getVehicleCount())));
-			
+					strBuilder.append("; " + ((AbstractRoad)roads.get(i)).getRoadName() + " = " + ((AbstractRoad)roads.get(i)).getVehicleCount());
 			}
-			System.out.println();
+			System.out.println(strBuilder);
 			
 			
 			if((currentGreenPhase == IRoadTwoPhaser.PHASEA) && (yelloCounter < 1)) {   //   phase A is Green
 				
 				for(IRoadTwoPhaser road : roads) {
-					if((road.getType() == IRoadTwoPhaser.PHASEB) || (ignitionCounter < this.vehicleIgnitionTime)) {
-						((AbstractRoad)road).incrementVehicleCount();   //  increment vehicles of phase B
+					if(road.getType() == IRoadTwoPhaser.PHASEB) {
+						((AbstractRoad)road).updateSignalStatus(redSignal);
+					} else {
+						((AbstractRoad)road).updateSignalStatus(greenSignal);
 					}
 				}
 				greenCounter++;
 				
 			} else if((currentGreenPhase == IRoadTwoPhaser.PHASEB) && (yelloCounter < 1)) {    //  phase B is Green
+				
 				for(IRoadTwoPhaser road : roads) {
-					if((road.getType() == IRoadTwoPhaser.PHASEA) || (ignitionCounter < this.vehicleIgnitionTime)) {
-						((AbstractRoad)road).incrementVehicleCount();   //   increment vehicle of phase A
+					if(road.getType() == IRoadTwoPhaser.PHASEA) {
+						((AbstractRoad)road).updateSignalStatus(redSignal);
+					} else {
+						((AbstractRoad)road).updateSignalStatus(greenSignal);
 					}
 				}
 				greenCounter++;
@@ -102,7 +116,7 @@ public class TwoPhasedTrafficController extends AbstractTrafficSignal {
 			}
 		}
 	}
-
+	
 	/**
 	 *  signal transitions like red to green or vice versa are handled by this method
 	 */
@@ -113,6 +127,7 @@ public class TwoPhasedTrafficController extends AbstractTrafficSignal {
 		} else {
 			currentGreenPhase = IRoadTwoPhaser.PHASEA;
 		}
-		greenCounter = yelloCounter = ignitionCounter = 0;
+		greenCounter = yelloCounter = 0;
 	}
+
 }

@@ -3,10 +3,13 @@ package com.sec.traficcontroller;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sec.models.AbstractTrafficSignal;
-import com.sec.models.IRoadTwoPhaser;
-import com.sec.models.TwoPhasedRoad;
-import com.sec.models.TwoPhasedTrafficController;
+import com.sec.factories.AbstractFactory;
+import com.sec.roads.IRoadTwoPhaser;
+import com.sec.roads.TwoPhasedRoad;
+import com.sec.signalcontrollers.AbstractTrafficSignal;
+import com.sec.utils.Constants.FACTORY_TYPE;
+import com.sec.utils.Constants.ROAD_TYPE;
+import com.sec.utils.Constants.SIGNAL_TYPE;
 
 /**
  * @author Kiran
@@ -16,26 +19,29 @@ public class TrafficController {
 
 	public static void main(String[] args) {
 
-		List<IRoadTwoPhaser> aPhased = new ArrayList<IRoadTwoPhaser>(); //  list of North-South roads
-		List<IRoadTwoPhaser> bPhased = new ArrayList<IRoadTwoPhaser>(); //  list of East-West roads
+		List<IRoadTwoPhaser> roads = new ArrayList<IRoadTwoPhaser>(); //  list of roads
 
-		TwoPhasedRoad road1 = new TwoPhasedRoad(IRoadTwoPhaser.PHASEA, 1, "N"); // North Road
-		TwoPhasedRoad road2 = new TwoPhasedRoad(IRoadTwoPhaser.PHASEA, 1, "S"); // Sount Road
-		aPhased.add(road1);
-		aPhased.add(road2);
-
-		TwoPhasedRoad road3 = new TwoPhasedRoad(IRoadTwoPhaser.PHASEB, 1, "E"); // East Road
-		TwoPhasedRoad road4 = new TwoPhasedRoad(IRoadTwoPhaser.PHASEB, 1, "W"); // West Road
-		bPhased.add(road3);
-		bPhased.add(road4);
+		TwoPhasedRoad road1 = (TwoPhasedRoad) AbstractFactory.getFactory(FACTORY_TYPE.FACTORY_ROAD).getRoad(ROAD_TYPE.ROAD_TWOPHASED); // North Road
+		road1.initRoad(IRoadTwoPhaser.PHASEA, 1, 1, 2, "N");
+		TwoPhasedRoad road2 = (TwoPhasedRoad) AbstractFactory.getFactory(FACTORY_TYPE.FACTORY_ROAD).getRoad(ROAD_TYPE.ROAD_TWOPHASED); // Sount Road
+		road2.initRoad(IRoadTwoPhaser.PHASEA, 1, 1, 2, "S");
+		TwoPhasedRoad road3 = (TwoPhasedRoad) AbstractFactory.getFactory(FACTORY_TYPE.FACTORY_ROAD).getRoad(ROAD_TYPE.ROAD_TWOPHASED); // East Road
+		road3.initRoad(IRoadTwoPhaser.PHASEB, 1, 1, 2, "E");
+		TwoPhasedRoad road4 = (TwoPhasedRoad) AbstractFactory.getFactory(FACTORY_TYPE.FACTORY_ROAD).getRoad(ROAD_TYPE.ROAD_TWOPHASED); // West Road
+		road4.initRoad(IRoadTwoPhaser.PHASEB, 1, 1, 2, "W");
+		
+		roads.add(road1);
+		roads.add(road2);
+		roads.add(road3);
+		roads.add(road4);
 
 		try {
-			AbstractTrafficSignal controller = new TwoPhasedTrafficController(aPhased, bPhased, 3, 1, 2, 30); // Traffic controller for 2 Phased signal operating
-			controller.start();   //  start the traffic on the roads and get results on console
+			AbstractTrafficSignal controller = AbstractFactory.getFactory(FACTORY_TYPE.FACTORY_SIGNAL).getSignal(SIGNAL_TYPE.SIGNAL_TWOPHASED);
+			controller.initSignal(roads, 3, 1, 30);
+			controller.startTraffic();   //  start the traffic on the roads and get results on console
 		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
 		}
-		
 	}
 
 }

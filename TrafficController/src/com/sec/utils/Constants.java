@@ -1,0 +1,20 @@
+package com.sec.utils;
+
+public class Constants {
+
+	public enum FACTORY_TYPE {
+		FACTORY_ROAD, FACTORY_SIGNAL
+	}
+	
+	public enum ROAD_TYPE {
+		ROAD_TWOPHASED, ROAD_NPHASED
+	}
+	
+	public enum SIGNAL_TYPE {
+		SIGNAL_TWOPHASED, SIGNAL_NPHASED
+	}
+	
+	public enum SIGNAL_OPERATION {
+		SIGNALOPERATION_GREEN, SIGNALOPERATION_YELLOW, SIGNALOPERATION_RED
+	}
+}

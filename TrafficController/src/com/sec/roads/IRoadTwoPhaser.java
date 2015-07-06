@@ -1,4 +1,4 @@
-package com.sec.models;
+package com.sec.roads;
 
 /**
  *  This interface represents the Two Phaser behaviour for road class
